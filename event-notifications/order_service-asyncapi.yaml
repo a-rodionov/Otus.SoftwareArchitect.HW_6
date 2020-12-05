@@ -1,0 +1,124 @@
+asyncapi: 2.0.0
+info:
+  title: OTUS Software Architecture HW6 API
+  version: '1.0.0'
+  description: |
+    Описание для сервиса Order
+
+defaultContentType: application/json
+
+channels:
+  orders:
+    description: Topic c заказами.
+    publish:
+      message:
+        $ref: '#/components/messages/OrderProcessed'
+    subscribe:
+      message:
+        $ref: '#/components/messages/OrderCreationRequested'
+  billing:
+    description: Topic c информацией о балансе пользователя.
+    publish:
+      message:
+        $ref: '#/components/messages/WithdrawalRequested'
+    subscribe:
+      message:
+        $ref: '#/components/messages/WithdrawalProcessed'
+components:
+  messages:
+    OrderCreationRequested:
+      name: OrderCreationRequested
+      title: Запрос на создание заказа.
+      summary: Пользователь иницировал создание заказа.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/OrderCreationRequested"
+    OrderProcessed:
+      name: OrderProcessed
+      title: Заказ обработан.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/OrderProcessed"
+    WithdrawalRequested:
+      name: WithdrawalRequested
+      title: Запрос на списание средств пользователя.
+      summary: Запрос на списание средств пользователя для оплаты заказы.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/WithdrawalRequested"
+    WithdrawalProcessed:
+      name: WithdrawalProcessed
+      title: Запрос на списание средств пользователя обработан.
+      summary: Запрос на списание средств пользователя для оплаты заказы обработан.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/WithdrawalProcessed"
+  schemas:
+    MonetaryAmount:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: string
+          description: Количество денежных единиц.
+        currency:
+          type: string
+          maxLength: 3
+          description: Символьный код валюты.
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    OrderCreationRequested:
+      type: object
+      required:
+        - userId
+        - price
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя.
+        price:
+          $ref: "#/components/schemas/MonetaryAmount"
+          description: Цена заказа.
+    OrderProcessed:
+      type: object
+      required:
+        - orderId
+      properties:
+        orderId:
+          type: integer
+          format: int64
+          description: Идентификатор заказа.
+    WithdrawalRequested:
+      type: object
+      required:
+        - orderId
+      properties:
+        orderId:
+          type: integer
+          format: int64
+          description: Идентификатор заказа.
+    WithdrawalProcessed:
+      type: object
+      required:
+        - orderId
+        - error
+      properties:
+        orderId:
+          type: integer
+          format: int64
+          description: Идентификатор заказа.
+        error:
+          $ref: "#/components/schemas/Error"
+          description: Код возврата операции списания средств пользователя для оплаты заказа.

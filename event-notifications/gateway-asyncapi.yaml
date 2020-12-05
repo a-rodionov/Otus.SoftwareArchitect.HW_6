@@ -1,0 +1,191 @@
+asyncapi: 2.0.0
+info:
+  title: OTUS Software Architecture HW6 API
+  version: '1.0.0'
+  description: |
+    Описание для сервиса Gateway
+
+defaultContentType: application/json
+
+channels:
+  orders:
+    description: Topic c заказами.
+    publish:
+      message:
+        $ref: '#/components/messages/OrderCreationRequested'
+    subscribe:
+      message:
+        $ref: '#/components/messages/OrderProcessed'
+  users:
+    description: Topic с информацией о пользовательских аккаунтах.
+    publish:
+      message:
+        $ref: '#/components/messages/UserCreationRequested'
+    subscribe:
+      message:
+        $ref: '#/components/messages/UserCreationProcessed'
+  billing:
+    description: Topic c информацией о балансе пользователя.
+    publish:
+      message:
+        $ref: '#/components/messages/DepositRequested'
+    subscribe:
+      message:
+        $ref: '#/components/messages/DepositProcessed'
+components:
+  messages:
+    OrderCreationRequested:
+      name: OrderCreationRequested
+      title: Запрос на создание заказа.
+      summary: Пользователь иницировал создание заказа.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/OrderCreationRequested"
+    OrderProcessed:
+      name: OrderProcessed
+      title: Заказ обработан.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/OrderProcessed"
+    DepositRequested:
+      name: DepositRequested
+      title: Запрос на зачисление средств на счет пользователя.
+      summary: Запрос на зачисление средств на счет пользователя.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/DepositRequested"
+    DepositProcessed:
+      name: DepositProcessed
+      title: Запрос на зачисление средств на счет пользователя обработан.
+      summary: Запрос на зачисление средств на счет пользователя обработан.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/DepositProcessed"
+    UserCreationRequested:
+      name: UserCreationRequested
+      title: Запрос на создание пользователя.
+      summary: Регистрация пользователя.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/UserCreationRequested"
+    UserCreationProcessed:
+      name: UserCreationProcessed
+      title: Запрос на создание пользователя обработан.
+      summary: Результат выполнения регистрации пользователя.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/UserCreationProcessed"
+  schemas:
+    MonetaryAmount:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: string
+          description: Количество денежных единиц.
+        currency:
+          type: string
+          maxLength: 3
+          description: Символьный код валюты.
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    OrderCreationRequested:
+      type: object
+      required:
+        - userId
+        - price
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя.
+        price:
+          $ref: "#/components/schemas/MonetaryAmount"
+          description: Цена заказа.
+    OrderProcessed:
+      type: object
+      required:
+        - orderId
+      properties:
+        orderId:
+          type: integer
+          format: int64
+          description: Идентификатор заказа.
+    DepositRequested:
+      type: object
+      required:
+        - userId
+        - moneyAmount
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя.
+        price:
+          $ref: "#/components/schemas/MonetaryAmount"
+          description: Сумма для зачисления на аккаут пользователя.
+    DepositProcessed:
+      type: object
+      required:
+        - userId
+        - error
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя.
+        error:
+          $ref: "#/components/schemas/Error"
+          description: Код возврата операции зачисления средств на баланс пользователя.
+    UserCreationRequested:
+      type: object
+      required:
+        - username
+        - password
+        - email
+      properties:
+        username:
+          type: string
+          maxLength: 256
+        password:
+          type: string
+          format: password
+          maxLength: 256
+        firstName:
+          type: string
+          maxLength: 256
+        lastName:
+          type: string
+          maxLength: 256
+        email:
+          type: string
+          format: email
+          maxLength: 256
+        phone:
+          type: string
+          format: phone
+          maxLength: 256
+    UserCreationProcessed:
+      type: object
+      required:
+        - userId
+        - error
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя.
+        error:
+          $ref: "#/components/schemas/Error"
+          description: Код возврата операции регистрации пользователя.

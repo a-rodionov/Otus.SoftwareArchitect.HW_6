@@ -1,0 +1,33 @@
+asyncapi: 2.0.0
+info:
+  title: OTUS Software Architecture HW6 API
+  version: '1.0.0'
+  description: |
+    Описание для сервиса Notification
+
+defaultContentType: application/json
+
+channels:
+  orders:
+    description: Topic c заказами.
+    subscribe:
+      message:
+        $ref: '#/components/messages/OrderProcessed'
+components:
+  messages:
+    OrderProcessed:
+      name: OrderProcessed
+      title: Заказ обработан.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/OrderProcessed"
+  schemas:
+    OrderProcessed:
+      type: object
+      required:
+        - orderId
+      properties:
+        orderId:
+          type: integer
+          format: int64
+          description: Идентификатор заказа.

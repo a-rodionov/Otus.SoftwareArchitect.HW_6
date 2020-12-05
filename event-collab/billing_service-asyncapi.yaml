@@ -1,0 +1,243 @@
+asyncapi: 2.0.0
+info:
+  title: OTUS Software Architecture HW6 API
+  version: '1.0.0'
+  description: |
+    Описание для сервиса Billing
+
+defaultContentType: application/json
+
+channels:
+  users:
+    description: Topic с информацией о пользовательских аккаунтах.
+    publish:
+      message:
+        oneOf:
+          - $ref: '#/components/messages/UserCreationSucceeded'
+          - $ref: '#/components/messages/UserCreationFailed'
+    subscribe:
+      message:
+        $ref: '#/components/messages/UserCreationRequested'
+  billing:
+    description: Topic c информацией о балансе пользователя.
+    publish:
+      message:
+        oneOf:
+          - $ref: '#/components/messages/DepositProcessed'
+          - $ref: '#/components/messages/WithdrawalProcessed'
+    subscribe:
+      message:
+        oneOf:
+          - $ref: '#/components/messages/DepositRequested'
+          - $ref: '#/components/messages/WithdrawalRequested'
+components:
+  messages:
+    DepositRequested:
+      name: DepositRequested
+      title: Запрос на зачисление средств на счет пользователя.
+      summary: Запрос на зачисление средств на счет пользователя.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/DepositRequested"
+    DepositProcessed:
+      name: DepositProcessed
+      title: Запрос на зачисление средств на счет пользователя обработан.
+      summary: Запрос на зачисление средств на счет пользователя обработан.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/DepositProcessed"
+    WithdrawalRequested:
+      name: WithdrawalRequested
+      title: Запрос на списание средств пользователя.
+      summary: Запрос на списание средств пользователя для оплаты заказы.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/WithdrawalRequested"
+    WithdrawalProcessed:
+      name: WithdrawalProcessed
+      title: Запрос на списание средств пользователя обработан.
+      summary: Запрос на списание средств пользователя для оплаты заказы обработан.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/WithdrawalProcessed"
+    UserCreationRequested:
+      name: UserCreationRequested
+      title: Запрос на создание пользователя.
+      summary: Регистрация пользователя.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/UserCreationRequested"
+    UserCreationSucceeded:
+      name: UserCreationSucceeded
+      title: Пользователь успешно зарегистрирован.
+      summary: Пользователь успешно зарегистрирован.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/UserCreationSucceeded"
+    UserCreationFailed:
+      name: UserCreationFailed
+      title: Ошибка при регистрации пользователя.
+      summary: Ошибка при регистрации пользователя.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/UserCreationFailed"
+  schemas:
+    MonetaryAmount:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: string
+          description: Количество денежных единиц.
+        currency:
+          type: string
+          maxLength: 3
+          description: Символьный код валюты.
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    UserInfo:
+      type: object
+      required:
+        - userId
+        - username
+        - email
+        - balance
+      properties:
+        userId:
+          type: integer
+          format: int64
+        username:
+          type: string
+          maxLength: 256
+        firstName:
+          type: string
+          maxLength: 256
+        lastName:
+          type: string
+          maxLength: 256
+        email:
+          type: string
+          format: email
+          maxLength: 256
+        phone:
+          type: string
+          format: phone
+          maxLength: 256
+        balance:
+          $ref: "#/components/schemas/MonetaryAmount"
+    DepositRequested:
+      type: object
+      required:
+        - userId
+        - moneyAmount
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя.
+        price:
+          $ref: "#/components/schemas/MonetaryAmount"
+          description: Сумма для зачисления на аккаут пользователя.
+    DepositProcessed:
+      type: object
+      required:
+        - userId
+        - error
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя.
+        error:
+          $ref: "#/components/schemas/Error"
+          description: Код возврата операции зачисления средств на баланс пользователя.
+    WithdrawalRequested:
+      type: object
+      required:
+        - userId
+        - orderId
+        - price
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя.
+        orderId:
+          type: integer
+          format: int64
+          description: Идентификатор заказа.
+        price:
+          $ref: "#/components/schemas/MonetaryAmount"
+          description: Цена заказа.
+    WithdrawalProcessed:
+      type: object
+      required:
+        - orderId
+        - error
+      properties:
+        orderId:
+          type: integer
+          format: int64
+          description: Идентификатор заказа.
+        error:
+          $ref: "#/components/schemas/Error"
+          description: Код возврата операции списания средств пользователя для оплаты заказа.
+    UserCreationRequested:
+      type: object
+      required:
+        - username
+        - password
+        - email
+      properties:
+        username:
+          type: string
+          maxLength: 256
+        password:
+          type: string
+          format: password
+          maxLength: 256
+        firstName:
+          type: string
+          maxLength: 256
+        lastName:
+          type: string
+          maxLength: 256
+        email:
+          type: string
+          format: email
+          maxLength: 256
+        phone:
+          type: string
+          format: phone
+          maxLength: 256
+    UserCreationSucceeded:
+      type: object
+      required:
+        - userInfo
+      properties:
+        userInfo:
+          $ref: "#/components/schemas/UserInfo"
+          description: Информация о пользователе.
+    UserCreationFailed:
+      type: object
+      required:
+        - userInfo
+        - error
+      properties:
+        userInfo:
+          $ref: "#/components/schemas/UserCreationRequested"
+          description: Информация для решистрации пользователя.
+        error:
+          $ref: "#/components/schemas/Error"
+          description: Код возврата операции регистрации пользователя.

@@ -1,0 +1,116 @@
+asyncapi: 2.0.0
+info:
+  title: OTUS Software Architecture HW6 API
+  version: '1.0.0'
+  description: |
+    Описание для сервиса Notification
+
+defaultContentType: application/json
+
+channels:
+  orders:
+    description: Topic c заказами.
+    subscribe:
+      message:
+        $ref: '#/components/messages/OrderProcessed'
+  users:
+    description: Topic с информацией о пользовательских аккаунтах.
+    subscribe:
+      message:
+        $ref: '#/components/messages/UserCreationSucceeded'
+components:
+  messages:
+    OrderProcessed:
+      name: OrderProcessed
+      title: Заказ обработан.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/OrderProcessed"
+    UserCreationSucceeded:
+      name: UserCreationSucceeded
+      title: Пользователь успешно зарегистрирован.
+      summary: Пользователь успешно зарегистрирован.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/UserCreationSucceeded"
+  schemas:
+    MonetaryAmount:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: string
+          description: Количество денежных единиц.
+        currency:
+          type: string
+          maxLength: 3
+          description: Символьный код валюты.
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    UserInfo:
+      type: object
+      required:
+        - userId
+        - username
+        - email
+        - balance
+      properties:
+        userId:
+          type: integer
+          format: int64
+        username:
+          type: string
+          maxLength: 256
+        firstName:
+          type: string
+          maxLength: 256
+        lastName:
+          type: string
+          maxLength: 256
+        email:
+          type: string
+          format: email
+          maxLength: 256
+        phone:
+          type: string
+          format: phone
+          maxLength: 256
+        balance:
+          $ref: "#/components/schemas/MonetaryAmount"
+    OrderProcessed:
+      type: object
+      required:
+        - userId
+        - orderId
+        - error
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: Идентификатор пользователя.
+        orderId:
+          type: integer
+          format: int64
+          description: Идентификатор заказа.
+        error:
+          $ref: "#/components/schemas/Error"
+          description: Код возврата операции создания и оплаты заказа.
+    UserCreationSucceeded:
+      type: object
+      required:
+        - userInfo
+      properties:
+        userInfo:
+          $ref: "#/components/schemas/UserInfo"
+          description: Информация о пользователе.
