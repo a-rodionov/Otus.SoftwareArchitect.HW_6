@@ -332,9 +332,14 @@ components:
     EmailContent:
       type: object
       required:
+        - email
         - title
         - message
       properties:
+        email:
+          type: string
+          format: email
+          maxLength: 256
         title:
           type: integer
           format: string
