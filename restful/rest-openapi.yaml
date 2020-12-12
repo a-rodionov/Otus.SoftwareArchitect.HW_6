@@ -24,12 +24,28 @@ paths:
       responses:
         '201':
           description: Заказ создан и оплачен
+          content:
+            application/json:
+              schema:
+                type: object
+                required: 
+                  - orderId
+                properties:
+                  userId:
+                    type: integer
+                    format: int64
         '400':
           description: Неверный запрос
-        '408':
-          description: Таймаут
-        default:
-          description: Ошибка при создании и обработке заказа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Пользователя не существует
+        '412':
+          description: Недостаточно средств для оплаты заказа
+        '500':
+          description: Внутренняя ошибка
           content:
             application/json:
               schema:
@@ -59,10 +75,18 @@ paths:
                 $ref: '#/components/schemas/Order'
         '400':
           description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Заказ не существует
-        '408':
-          description: Таймаут
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /billing/user:
     post:
       tags:
@@ -76,12 +100,24 @@ paths:
       responses:
         '201':
           description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                type: object
+                required: 
+                  - userId
+                properties:
+                  userId:
+                    type: integer
+                    format: int64
         '400':
           description: Неверный запрос
-        '408':
-          description: Таймаут
-        default:
-          description: Ошибка при создании пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
           content:
             application/json:
               schema:
@@ -111,10 +147,18 @@ paths:
                 $ref: '#/components/schemas/User'
         '400':
           description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Пользователя не существует
-        '408':
-          description: Таймаут
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /billing/deposit/{userId}:
     post:
       tags:
@@ -135,17 +179,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MonetaryAmount'
+              type: object
+              required: 
+                - amount
+              properties:
+                amount:
+                  type: integer
+                  format: int64
         required: true
       responses:
         '200':
           description: Успешный запрос
         '400':
           description: Неверный запрос
-        '408':
-          description: Таймаут
-        default:
-          description: Ошибка при пополнении баланса пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Пользователя не существует
+        '500':
+          description: Внутренняя ошибка
           content:
             application/json:
               schema:
@@ -170,17 +224,29 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MonetaryAmount'
+              type: object
+              required: 
+                - amount
+              properties:
+                amount:
+                  type: integer
+                  format: int64
         required: true
       responses:
         '200':
           description: Успешный запрос
         '400':
           description: Неверный запрос
-        '408':
-          description: Таймаут
-        default:
-          description: Ошибка при снятии средств с баланса пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Пользователя не существует
+        '412':
+          description: Недостаточно средств на балансе пользователя
+        '500':
+          description: Внутренняя ошибка
           content:
             application/json:
               schema:
@@ -215,8 +281,12 @@ paths:
                       $ref: '#/components/schemas/EmailContent'
         '400':
           description: Неверный запрос
-        '408':
-          description: Таймаут
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     post:
       tags:
         - notification
@@ -243,29 +313,18 @@ paths:
           description: Задача отправки email для пользователя поставлена в очередь
         '400':
           description: Неверный запрос
-        '404':
-          description: Пользователя не существует
-        '408':
-          description: Таймаут
-        default:
-          description: Ошибка при создании пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    MonetaryAmount:
-      type: object
-      required:
-        - amount
-        - currency
-      properties:
-        amount:
-          type: string
-        currency:
-          type: string
-          maxLength: 3
     Order:
       type: object
       required: 
@@ -281,7 +340,8 @@ components:
           type: integer
           format: int64
         price:
-          $ref: '#/components/schemas/MonetaryAmount'
+          type: integer
+          format: int64
         status:
           type: integer
           format: int64
@@ -317,7 +377,8 @@ components:
           format: phone
           maxLength: 256
         balance:
-          $ref: '#/components/schemas/MonetaryAmount'
+          type: integer
+          format: int64
     Error:
       type: object
       required:
@@ -341,7 +402,7 @@ components:
           format: email
           maxLength: 256
         title:
-          type: integer
+          type: string
           format: string
           maxLength: 256
         message:
@@ -357,9 +418,11 @@ components:
                 - price
             properties:
               userId:
-                type: number
+                type: integer
+                format: int64
               price:
-                $ref: '#/components/schemas/MonetaryAmount'
+                type: integer
+                format: int64
       description: Информация для создания заказа
       required: true
     UserCreation:
@@ -368,9 +431,9 @@ components:
           schema:
             type: object
             required: 
-                - username
-                - password
-                - email
+              - username
+              - password
+              - email
             properties:
               username:
                 type: string
